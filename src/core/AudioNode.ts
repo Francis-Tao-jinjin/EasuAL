@@ -1,8 +1,8 @@
 import EasuAL from "../EasuAL";
 
-export class EasuAudioNode extends EasuAL{
-    public input:AudioNode|AudioParam;
-    public output:AudioNode;
+export abstract class EasuAudioNode extends EasuAL{
+    public abstract input:AudioNode|AudioParam;
+    public abstract output:AudioNode;
 
     constructor () {
         super();
@@ -22,6 +22,7 @@ export class EasuAudioNode extends EasuAL{
 
 export class EasuDestination extends EasuAudioNode {
     public input:GainNode;
+    public output:GainNode;
     public gain:GainNode;
     constructor() {
         super();

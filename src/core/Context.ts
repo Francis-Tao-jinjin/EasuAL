@@ -4,11 +4,11 @@ export class EasuALContext {
 
     public readonly _ctx:AudioContext;
     public readonly createGain:() => GainNode;
-    public readonly createConstantSource:() => ConstantSourceNode;
+    public readonly createConstantSource:() => any;
     public readonly createAnalyser:() => AnalyserNode;
     public readonly createBuffer:(numOfChannels:number, length:number, sampleRate:number) => AudioBuffer;
     public readonly createOscillator:() => OscillatorNode;
-    public readonly createPeriodicWave:(read:number[], imag:number[], constraints:{disableNormalization:boolean}) => PeriodicWave;
+    public readonly createPeriodicWave:(real:Float32Array, imag:Float32Array, constraints:{disableNormalization:boolean}) => PeriodicWave;
     public readonly createScriptProcessor:(bufferSize:number, numberOfInputChannels:number, numberOfOutputChannels:number) => ScriptProcessorNode;
     public readonly createBufferSource:() => AudioBufferSourceNode;
     public readonly decodeAudioData:(ArrayBuffer:ArrayBuffer, onSuccess:(buffer) => void, onError?:(msg) => void) => void;
@@ -21,7 +21,7 @@ export class EasuALContext {
         this.lookAhead = (lookAhead === undefined ? 0.03 : lookAhead);
 
         this.createGain = this._ctx.createGain;
-        this.createConstantSource = this._ctx.createConstantSource;
+        this.createConstantSource = (this._ctx as any).createConstantSource;
         this.createAnalyser = this._ctx.createAnalyser;
         this.createBuffer = this._ctx.createBuffer;
         this.createOscillator = this._ctx.createOscillator;
@@ -30,10 +30,6 @@ export class EasuALContext {
         this.createBufferSource = this._ctx.createBufferSource;
         this.decodeAudioData = this._ctx.decodeAudioData;
     }
-
-    // get currentTime() {
-    //     return this._ctx.currentTime;
-    // }
 
     get destination() {
         return this._ctx.destination;

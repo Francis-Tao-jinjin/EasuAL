@@ -4,13 +4,17 @@
   "description": "An easy to use audio library base on webaudio API",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "browserify ./test/main.ts -p [ tsify ] > bundle.js && gzip -f bundle.js  && http-server . 8080 -g",
+    "tape": "tape -r ts-node/register ./test/**/*.ts",
+    "start": "browserify ./src/index.ts -p [ tsify ] > bundle.js && gzip -f bundle.js  && http-server . 8080 -g"
   },
   "keywords": [
     "webaudio"
   ],
   "dependencies": {
     "browserify": "^16.2.3",
+    "tape": "^4.10.1",
+    "ts-node": "^8.1.0",
     "ts-promise": "^2.1.0",
     "webworkify": "^1.5.0"
   },
