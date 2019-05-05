@@ -1,3 +1,5 @@
+import { EasuAL } from './BaseClass';
+
 export class EasuALContext {
 
     public lookAhead:number;
@@ -17,18 +19,18 @@ export class EasuALContext {
         if (context === null || context === undefined) {
             context = new ((window as any).AudioContext || (window as any).webkitAudioContext);
         }
-        this._ctx = context;
+        this._ctx = (context as AudioContext);
         this.lookAhead = (lookAhead === undefined ? 0.03 : lookAhead);
 
-        this.createGain = this._ctx.createGain;
-        this.createConstantSource = (this._ctx as any).createConstantSource;
-        this.createAnalyser = this._ctx.createAnalyser;
-        this.createBuffer = this._ctx.createBuffer;
-        this.createOscillator = this._ctx.createOscillator;
-        this.createPeriodicWave = this._ctx.createPeriodicWave;
-        this.createScriptProcessor = this._ctx.createScriptProcessor;
-        this.createBufferSource = this._ctx.createBufferSource;
-        this.decodeAudioData = this._ctx.decodeAudioData;
+        this.createGain = this._ctx.createGain.bind(this._ctx);
+        this.createConstantSource = (this._ctx as any).createConstantSource.bind(this._ctx);
+        this.createAnalyser = this._ctx.createAnalyser.bind(this._ctx);
+        this.createBuffer = this._ctx.createBuffer.bind(this._ctx);
+        this.createOscillator = this._ctx.createOscillator.bind(this._ctx);
+        this.createPeriodicWave = this._ctx.createPeriodicWave.bind(this._ctx);
+        this.createScriptProcessor = this._ctx.createScriptProcessor.bind(this._ctx);
+        this.createBufferSource = this._ctx.createBufferSource.bind(this._ctx);
+        this.decodeAudioData = this._ctx.decodeAudioData.bind(this._ctx);
     }
 
     get destination() {
@@ -39,6 +41,10 @@ export class EasuALContext {
         return this._ctx.sampleRate;
     }
 
+    get sampleTime() {
+        return 1 / this._ctx.sampleRate;
+    }
+
     get state() {
         return this._ctx.state;
     }
@@ -47,3 +53,5 @@ export class EasuALContext {
         return this._ctx.currentTime + this.lookAhead;
     }
 }
+
+EasuAL.EasuALContext = EasuALContext;
