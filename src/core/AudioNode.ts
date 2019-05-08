@@ -1,5 +1,10 @@
 import { EasuAL } from './BaseClass';
 import { AudioParamTimeline } from './AutomationTimeline';
+import {
+    AudioParamUnits,
+    EasuAudioParamOpt,
+    EasuOscNodeOpt
+} from './type';
 
 export abstract class EasuAudioNode extends EasuAL{
     public input?:AudioNode|AudioParam;
@@ -21,6 +26,7 @@ export abstract class EasuAudioNode extends EasuAL{
         if (this.output && this.context.destination) {
             this.output.connect(this.context.destination);
         }
+        return this;
     };
 }
 
@@ -56,19 +62,6 @@ export class EasuGain extends EasuAudioNode {
     }
 }
 
-enum AudioParamUnits {
-    gain,
-    decibel,
-    hz,
-    cent,
-}
-
-interface EasuAudioParamArgs {
-    param:AudioParam;
-    unit:AudioParamUnits;
-    value?:any;
-}
-
 export class EasuAudioParam extends EasuAudioNode {
     public _param:AudioParam;
     protected _unit:AudioParamUnits;
@@ -76,14 +69,14 @@ export class EasuAudioParam extends EasuAudioNode {
 
     public readonly input;
 
-    constructor(args:EasuAudioParamArgs) {
+    constructor(opt:EasuAudioParamOpt) {
         super();
-        this._param = args.param;
+        this._param = opt.param;
         this._unit = AudioParamUnits.gain;
         this._timeline = new EasuAL.AudioParamTimeline();
         this.input = this._param;
-        if (args.value !== undefined) {
-            this.value = args.value;
+        if (opt.value !== undefined) {
+            this.value = opt.value;
         }
     }
 
@@ -121,6 +114,7 @@ export class EasuAudioParam extends EasuAudioNode {
     }
 
     public exponentialRampTo(value:number, rampTime:number, startTime?:number) {
+        value = Math.max(1e-5, value);
         startTime = startTime === undefined ? EasuAL.context.now() : startTime;
         this._timeline.exponentialRampTo(value, rampTime, startTime);
         this._param.setValueAtTime(this.getValueAtTime(startTime), startTime);
@@ -129,6 +123,7 @@ export class EasuAudioParam extends EasuAudioNode {
     }
 
     public targetApproachTo(value:number, rampTime:number, startTime:number) {
+        value = Math.max(1e-5, value);
         startTime = startTime === undefined ? EasuAL.context.now() : startTime;
         this._timeline.targetRampTo(value, rampTime, startTime);
         this._param.setValueAtTime(this.getValueAtTime(startTime), startTime);
@@ -137,28 +132,22 @@ export class EasuAudioParam extends EasuAudioNode {
     }
 }
 
-interface EasuOscNodeOpt {
-    type?:OscillatorType;
-    frequency?:number;
-    detune?:number;
-    onended?:(param:any) => void;
-};
-
 export class EasuOscNode extends EasuAudioNode {
     public readonly output:GainNode;
     public frequency:EasuAudioParam;
     public detune:EasuAudioParam;
-    public gain:EasuGain;
+    public amp:EasuGain;
     
     private _startTime:number = -1;
     private _stopTime:number = -1;
     private _oscillator:OscillatorNode;
-    constructor(opt:EasuOscNodeOpt) {
+    constructor(opt:EasuOscNodeOpt = {}) {
         super();
         this.output = this.context.createGain();
 
         // this could be a envelope
-        this.gain = new EasuAL.EasuGain(this.output);
+        this.amp = new EasuAL.EasuGain(this.output);
+        this.amp.gain.value = 1;
         opt = {
             type: 'sine',
             frequency: 440,
@@ -190,7 +179,7 @@ export class EasuOscNode extends EasuAudioNode {
             time = time === undefined ? this.context.now() : Math.max(time, this.context.now());
             this._startTime = time;
             this._oscillator.start(this._startTime);
-            this.gain.gain.setValueAtTime(1, this._startTime);
+            // this.amp.gain.setValueAtTime(1, this._startTime);
         } else {
             console.warn('OscillatorNode already started');
         }
@@ -201,14 +190,19 @@ export class EasuOscNode extends EasuAudioNode {
         if (this._startTime === -1) {
             throw new Error('oscillator has not been start yet');
         }
-        this.gain.gain.cancelScheduledValues(this._startTime + this.context.sampleTime);
         this._stopTime = time === undefined ? this.context.now() : Math.max(time, this.context.now());
+        // this.amp.gain.cancelScheduledValues(this._stopTime + this.context.sampleTime);
         if (this._stopTime > this._startTime) {
-            this.gain.gain.setValueAtTime(0, this._stopTime);
+            this.amp.gain.setValueAtTime(0, this._stopTime);
             this._oscillator.stop(this._stopTime);
         } else {
-            this.gain.gain.cancelScheduledValues(this._startTime);
+            this.amp.gain.cancelScheduledValues(this._startTime);
         }
+        return this;
+    }
+
+    public setPeriodicWave(wave:PeriodicWave) {
+        this._oscillator.setPeriodicWave(wave);
         return this;
     }
 }

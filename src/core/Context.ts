@@ -10,10 +10,10 @@ export class EasuALContext {
     public readonly createAnalyser:() => AnalyserNode;
     public readonly createBuffer:(numOfChannels:number, length:number, sampleRate:number) => AudioBuffer;
     public readonly createOscillator:() => OscillatorNode;
-    public readonly createPeriodicWave:(real:Float32Array, imag:Float32Array, constraints:{disableNormalization:boolean}) => PeriodicWave;
+    public readonly createPeriodicWave:(real:Float32Array, imag:Float32Array, constraints?:{disableNormalization:boolean}) => PeriodicWave;
     public readonly createScriptProcessor:(bufferSize:number, numberOfInputChannels:number, numberOfOutputChannels:number) => ScriptProcessorNode;
     public readonly createBufferSource:() => AudioBufferSourceNode;
-    public readonly decodeAudioData:(ArrayBuffer:ArrayBuffer, onSuccess:(buffer) => void, onError?:(msg) => void) => void;
+    public readonly decodeAudioData:(ArrayBuffer:ArrayBuffer, onSuccess?:(buffer) => void, onError?:(msg) => void) => Promise<AudioBuffer>;
 
     constructor(context?:AudioContext, lookAhead?:number) {
         if (context === null || context === undefined) {

@@ -7,6 +7,10 @@ import {
     EasuAudioParam,
     EasuOscNode,
 } from './AudioNode';
+import { ConstantSource } from '../audioComponent/ConstantSource';
+import { Oscillator } from '../audioComponent/oscillator';
+import { EasuBuffer } from './AudioBuffer';
+import { EasuBufferSource } from '../audioComponent/BufferSource';
 
 export class EasuAL {
     public static AudioParamTimeline:typeof AudioParamTimeline;
@@ -15,6 +19,10 @@ export class EasuAL {
     public static EasuDestination:typeof EasuDestination;
     public static EasuGain:typeof EasuGain;
     public static EasuOscNode:typeof EasuOscNode;
+    public static ConstantSource:typeof ConstantSource;
+    public static Oscillator:typeof Oscillator;
+    public static EasuBuffer:typeof EasuBuffer;
+    public static EasuBufferSource:typeof EasuBufferSource;
     public static EasuALContext:typeof EasuALContext;
 
     public static destination:EasuDestination;
@@ -36,5 +44,14 @@ export class EasuAL {
         } else {
             return (EasuAL.destination as EasuDestination);
         }
+    }
+
+    // decibel_level = 20 * log10(gain);
+    public gainToDb(value) {
+        return 20 * Math.log10(value);
+    }
+
+    public dbToGain(db) {
+        return Math.pow(10, (db / 20));
     }
 }
