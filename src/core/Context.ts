@@ -1,4 +1,5 @@
 import { EasuAL } from './BaseClass';
+import { BPMCurve } from './schedule/BPMCurve';
 
 export class EasuALContext {
 
@@ -14,6 +15,11 @@ export class EasuALContext {
     public readonly createScriptProcessor:(bufferSize:number, numberOfInputChannels:number, numberOfOutputChannels:number) => ScriptProcessorNode;
     public readonly createBufferSource:() => AudioBufferSourceNode;
     public readonly decodeAudioData:(ArrayBuffer:ArrayBuffer, onSuccess?:(buffer) => void, onError?:(msg) => void) => Promise<AudioBuffer>;
+
+    // beats per minute
+    public _bpm?:BPMCurve;
+    // ticks per quaterNote (beats)
+    private _tpq:number = 192;
 
     constructor(context?:AudioContext, lookAhead?:number) {
         if (context === null || context === undefined) {
@@ -51,6 +57,23 @@ export class EasuALContext {
 
     public now() {
         return this._ctx.currentTime + this.lookAhead;
+    }
+
+    get TPQ() {
+        return this._tpq;
+    }
+
+    get BPM() {
+        if(this._bpm) {
+            return this._bpm;
+        } else {
+            throw Error('no bpm without initinalized scheduler');
+        }
+    }
+
+    public initScheduler() {
+        this._bpm = new BPMCurve(this);
+        this._bpm.value = 120;
     }
 }
 

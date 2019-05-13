@@ -20,7 +20,7 @@ export enum ParamEvent {
 }
 
 export class AudioParamTimeline {
-    private _rampPoints:any[] = [];
+    protected _rampPoints:any[] = [];
     private _defaultValue:number;
     
     public capacity:number;
@@ -37,6 +37,7 @@ export class AudioParamTimeline {
         if (this._rampPoints.length > this.capacity) {
             this._rampPoints.shift();
         }
+        return this;
     }
 
     public setValueAtTime(value, time:number) {
@@ -56,7 +57,7 @@ export class AudioParamTimeline {
     }
 
     public linearRampTo(value:number, rampTime:number, startTime?:number) {
-        startTime = startTime === undefined ? EasuAL.context.now() : startTime;
+        startTime = startTime === undefined ? EasuAL.context.now() : Math.max(startTime, 0);
         this.setRampPoint(startTime);
         this._linearRampToValueAtTime(value, rampTime + startTime);
         return this;
@@ -156,30 +157,33 @@ export class AudioParamTimeline {
         return value;
     }
 
-    public search(time) {
+    // 这要求 field 字段的数据也需要是递增的
+    public search(data:number, field?:string) {
+        field = (!!field === false) ? 'time' : field;
+        if (field === undefined) { return -1; }
         if (this._rampPoints.length === 0) {
             return -1;
         }
-        if (this._rampPoints.length > 0 && this._rampPoints[this._rampPoints.length - 1].time <= time) {
+        if (this._rampPoints.length > 0 && this._rampPoints[this._rampPoints.length - 1][field] <= data) {
             return this._rampPoints.length - 1;
         }
         for (let i = 0; i<this._rampPoints.length; i++) {
-            if (this._rampPoints[i].time === time) {
+            if (this._rampPoints[i][field] === data) {
                 let j = i;
                 // find the last one that have the same value
-                while(j+1 < this._rampPoints.length && this._rampPoints[j+1].time === time) {
+                while(j+1 < this._rampPoints.length && this._rampPoints[j+1][field] === data) {
                     j++;
                 }
                 return j;
-            } else if (this._rampPoints[i].time > time) {
+            } else if (this._rampPoints[i][field] > data) {
                 return i - 1;
             }
         }
         return -1;
     }
 
-    public getRightNext(time) {
-        const idx = this.search(time);
+    public getRightNext(data:number, field?:string) {
+        const idx = this.search(data, field);
         if (idx + 1 < this._rampPoints.length) {
             return this._rampPoints[idx + 1];
         } else {
@@ -187,8 +191,8 @@ export class AudioParamTimeline {
         }
     }
 
-    public getMostRecent(time) {
-        const idx = this.search(time);
+    public getMostRecent(data:number, field?:string) {
+        const idx = this.search(data, field);
         if (idx !== -1) {
             return this._rampPoints[idx];
         } else {
@@ -211,7 +215,7 @@ export class AudioParamTimeline {
 
     public cancelAfter(time:number) {
         let idx = this.search(time);
-        if (idx) {
+        if (idx >= 0) {
             if (this._rampPoints[idx].time === time) {
                 let i = idx;
                 for (;this._rampPoints[i].time && i > 0; i--) {}
@@ -223,6 +227,15 @@ export class AudioParamTimeline {
         }
         else {
             this._rampPoints = [];
+        }
+    }
+
+    public previousPoint(event) {
+        const index = this._rampPoints.indexOf(event);
+        if (index > 0) {
+            return this._rampPoints[index - 1];
+        } else {
+            return null;
         }
     }
 }

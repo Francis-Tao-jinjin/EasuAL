@@ -128,7 +128,7 @@ export class EasuBufferSource extends EasuAL.EasuAudioNode {
 
     this._sourceNode.buffer = this._buffer.get();
     this._startTime = time;
-    this._sourceNode.onended = this.onended.bind(this);
+    this._sourceNode.onended = this._onended.bind(this);
     this._sourceNode.start(time, offset);
     // 留出剩下的时间用来淡出
     if (duration !== undefined) {
@@ -168,6 +168,13 @@ export class EasuBufferSource extends EasuAL.EasuAudioNode {
     }
     this._sourceNode.stop(this._stopTime);
     return this;
+  }
+
+  private _onended() {
+    if (this._sourceStopped === false) {
+      this._sourceStopped = true;
+      this.onended(this);
+    }
   }
 }
 

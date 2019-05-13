@@ -36,16 +36,12 @@ export function bufferSourceTest(easual:typeof EasuAL) {
       onload: () => {
         startTime = easual.context.now();
         song.start(undefined, 2, 3, undefined);
+        song.stop(startTime + 5);
       },
       onended:() => {
         console.log( easual.context.now() - startTime);
       }
     }).toDestination();
-    if (buffer.length > 0) {
-      startTime = easual.context.now();
-      song.start(undefined, 2, 3, undefined);
-      song.stop(startTime + 5);
-    }
   }
 
   function loopWithDuration() {
@@ -56,6 +52,7 @@ export function bufferSourceTest(easual:typeof EasuAL) {
       fadeOutDuration: 1,
       onload:() => {
         startTime = EasuAL.context.now();
+        // playe 2 - 4 s then 0 - 3 s, total duration is 5s, offset is 2s
         song.start(undefined, 2,5 ,undefined );
       },
       onended:() => {
@@ -66,11 +63,6 @@ export function bufferSourceTest(easual:typeof EasuAL) {
     song.toDestination();
     song.loopEnd = 4;
     song.loopStart = 0;
-    if (buffer.length > 0) {
-      startTime = EasuAL.context.now();
-      // playe 2 - 4 s then 0 - 3 s, total duration is 5s, offset is 2s
-      song.start(undefined, 2,5 ,undefined );
-    }
   }
 
   const expontialFadeInOutBtn = document.createElement('button');

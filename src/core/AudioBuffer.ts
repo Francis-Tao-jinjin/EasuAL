@@ -19,6 +19,11 @@ export class EasuBuffer extends EasuAL {
         this.set(opt.src);
         if (this.length <= 0) {
           this.onload = opt.onload;
+        } else {
+          this.onload = opt.onload;
+          setTimeout(() => {
+            this.onload(this);
+          }, 0);
         }
       } else if (typeof opt.src === 'string') {
         this.load(opt.src, opt.onload, opt.onerror);

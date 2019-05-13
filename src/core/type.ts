@@ -53,3 +53,7 @@ export interface BufferSourceOpt {
   onload?:() => void;
   onended?:() => void;
 }
+
+export interface BufferPlayerOpt extends BufferSourceOpt {
+  autoStart?:boolean;
+}
