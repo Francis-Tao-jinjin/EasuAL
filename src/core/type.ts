@@ -61,4 +61,5 @@ export interface BufferPlayerOpt extends BufferSourceOpt {
 export enum PlayState {
   Stopped,
   Started,
+  Paused,
 }

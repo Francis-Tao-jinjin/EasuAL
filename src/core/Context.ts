@@ -1,5 +1,6 @@
 import { EasuAL } from './BaseClass';
 import { BPMCurve } from './schedule/BPMCurve';
+import { TickCounter } from './schedule/TickCounter';
 
 export class EasuALContext {
 
@@ -18,6 +19,7 @@ export class EasuALContext {
 
     // beats per minute
     public _bpm?:BPMCurve;
+    public _tickCounter?:TickCounter;
     // ticks per quaterNote (beats)
     private _tpq:number = 192;
 
@@ -72,8 +74,12 @@ export class EasuALContext {
     }
 
     public initScheduler() {
+        if (this._bpm) {
+            return;
+        }
         this._bpm = new BPMCurve(this);
         this._bpm.value = 120;
+        this._tickCounter = new TickCounter(this, this._bpm).start();
     }
 }
 

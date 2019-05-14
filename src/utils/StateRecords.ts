@@ -42,7 +42,7 @@ export class StateRecords {
 
   public forEachBetween(startTime, endTime, callback) {
     let end = this.searchAloneTime(endTime);
-    let start = this.searchAloneTime(endTime);
+    let start = this.searchAloneTime(startTime);
     if (start !== -1 && end !== -1) {
       if (this._records[start].time !== startTime) {
         start += 1;
@@ -110,6 +110,7 @@ export class StateRecords {
         return record;
       }
     }
+    return null;
   }
 
   public getFirstOneOfStateAfterTime(state, time) {
@@ -122,5 +123,24 @@ export class StateRecords {
         }
       }
     }
+    return null;
+  }
+
+  public cancelAfter(time:number) {
+    let idx = this.searchAloneTime(time);
+    if (idx >= 0) {
+      if (this._records[idx].time === time) {
+        let i = idx;
+        for (;this._records[i].time && i > 0; i--) {}
+        idx = i;
+      }
+      if (idx >= 0) {
+        this._records = this._records.slice(0, idx);
+      } 
+    }
+    else {
+      this._records = [];
+    }
   }
 }
+

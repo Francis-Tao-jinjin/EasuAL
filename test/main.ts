@@ -4,6 +4,7 @@ import { testBpmCurve } from './bpmCurve';
 import { automationTests } from './automation';
 import { audioBufferTest } from './audioBuffer';
 import { bufferSourceTest } from './bufferSource';
+import { testTickCounter } from './tickCounter';
 
 const EasuAL = initEasuAL();
 (window as any).EasuAL = EasuAL;
@@ -28,5 +29,7 @@ window.onload = () => {
   bufferSourceTest(EasuAL);
   setTimeout(() => {
     testBpmCurve(EasuAL);
+    testTickCounter(EasuAL);
   }, 200);
+
 }
