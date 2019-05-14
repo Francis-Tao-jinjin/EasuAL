@@ -5,6 +5,9 @@ import { ParamEvent } from '../AutomationTimeline';
 /**
  * 默认参考系：bpm 120，参考音符 4分音符
  * 则一秒钟参考tick数 384
+ * 
+ * BPMCurve 从创建的时候就开始记录总 tick 数，在销毁永远不会中断，
+ * 就如同 AudioContext 的 currentTime 属性一样
  */
 
 export class BPMCurve extends EasuAL.AudioParamTimeline {

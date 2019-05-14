@@ -57,3 +57,8 @@ export interface BufferSourceOpt {
 export interface BufferPlayerOpt extends BufferSourceOpt {
   autoStart?:boolean;
 }
+
+export enum PlayState {
+  Stopped,
+  Started,
+}
