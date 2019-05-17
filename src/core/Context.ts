@@ -28,7 +28,7 @@ export class EasuALContext {
             context = new ((window as any).AudioContext || (window as any).webkitAudioContext);
         }
         this._ctx = (context as AudioContext);
-        this.lookAhead = (lookAhead === undefined ? 0.03 : lookAhead);
+        this.lookAhead = (lookAhead === undefined ? 0.1 : lookAhead);
 
         this.createGain = this._ctx.createGain.bind(this._ctx);
         this.createConstantSource = (this._ctx as any).createConstantSource.bind(this._ctx);

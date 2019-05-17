@@ -102,9 +102,44 @@ export function testTickCounter(easual:typeof EasuAL) {
     console.log('Count Of Ticks for 3 to 10 second', countOfTicks, Math.round(countOfTicks) === 2016 + 200);
   }
 
+  function test5() {
+    if (easual.context.BPM === undefined || easual.context._tickCounter === undefined) {
+      return;
+    }
+    const beginTime = easual.context.now();
+    easual.context.BPM.cancelAfter(beginTime);
+    easual.context.BPM.value = 120;
+    easual.context.BPM.setValueAtTime(60, beginTime + 0.1);
+    easual.context._tickCounter.stop(beginTime);
+    easual.context._tickCounter.start(beginTime);
+    easual.context._tickCounter.stop(beginTime + 0.2);
+    let previousTime = 0;
+    let tickCount = 0;
+    // tickCount 在 beginTime + 0.2 的时候就停止计数了，所以最后 0.1 内不应该触发回调函数
+    easual.context._tickCounter.forEachTickBetween(beginTime, beginTime + 0.3, (time, ticks) => {
+      if (previousTime === 0) {
+        // console.log(time, ticks);
+      } else {
+        console.log(
+          '1 tickDuration',
+          time - previousTime, ticks,
+          (time < beginTime + 0.1) ?
+            Number(time - previousTime).toFixed(6) === Number(1/384).toFixed(6) :
+            Number(time - previousTime).toFixed(6) === Number(1/192).toFixed(6));
+        // 目前在 BPM 跳变的地方 1 tick 的长度并不是规整的，这也没法避免，因为 BPM 发生变化的时间总是任意的
+      }
+      console.log(time, ticks);
+      previousTime = time;
+      tickCount++;
+    });
+    console.log('tickCount should be 58', tickCount === 58);
+  }
 
   test1();
   test2();
   test3();
   test4();
+  test5();
+
+  console.log('Finished Tick Counter test');
 }

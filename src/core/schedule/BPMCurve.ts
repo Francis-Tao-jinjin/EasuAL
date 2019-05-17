@@ -44,27 +44,31 @@ export class BPMCurve extends EasuAL.AudioParamTimeline {
     });
     const event = this.getMostRecent(time);
     const previousEvent = this.previousPoint(event);
-    const ticksAccumulateTime = this._getTicksSinceEvent(previousEvent, time);
-    event.ticks = Math.max(ticksAccumulateTime, 0);
+    if (previousEvent) {
+      const ticksAccumulateTime = this._getTicksSinceEvent(previousEvent, time);
+      event.ticks = Math.max(ticksAccumulateTime, 0);
+    }
     return this;
   }
 
   private _getTicksSinceEvent(event?, time?:number) {
     if (event === null) {
-      event = {
-        ticks: 0,
-        time: 0,
-      };
+      event = { ticks: 0, time: 0 };
     } else if (event.ticks === undefined) {
       const previousEvent = this.previousPoint(event);
-      event.ticks = this._getTicksSinceEvent(previousEvent, event.time);
+      if (previousEvent) {
+        event.ticks = this._getTicksSinceEvent(previousEvent, event.time);
+      } else {
+        event.ticks = 0;
+      }
     }
     time = time === undefined ? this._context.now() : Math.max(time, event.time);
     const val0 = this.getValueAtTime(event.time);
     let val1 = this.getValueAtTime(time);
 
-    if (this.getMostRecent(time).time === time &&
-        this.getMostRecent(time).type === ParamEvent.SetValue) {
+    const recent = this.getMostRecent(time);
+    if (recent && recent.time === time &&
+        recent.type === ParamEvent.SetValue) {
       val1 = this.getValueAtTime(time - this._context.sampleTime);
     }
     return 0.5 * (time - event.time) * (val0 + val1) + event.ticks;

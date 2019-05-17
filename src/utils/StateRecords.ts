@@ -134,7 +134,7 @@ export class StateRecords {
         for (;this._records[i].time && i > 0; i--) {}
         idx = i;
       }
-      if (idx >= 0) {
+      if (idx >= 0 && this._records[idx].time >= time) {
         this._records = this._records.slice(0, idx);
       } 
     }

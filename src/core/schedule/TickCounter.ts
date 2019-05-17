@@ -40,7 +40,7 @@ export class TickCounter {
     if (firstStartRecord === null) {
       firstStartRecord = {state:PlayState.Started, time: 0};
     }
-    // 因为统计 tick 需要又一个非 Started 状态的值作为结尾
+    // 因为统计 tick 需要有一个非 Started 状态的值作为结尾
     let tempPause = { time, state: PlayState.Paused };
     this._state.add(tempPause);
 
@@ -77,13 +77,25 @@ export class TickCounter {
   }
 
   // startTime 和 endTime 正常的时间
-  public forEachTickBetween(startTime:number, endTime:number, callback) {
+  public forEachTickBetween(startTime:number, endTime:number, callback:(time?, ticks?) => void) {
     let latestRecord = this._state.getMostRecent(startTime);
     if (latestRecord === null) {
       return;
     }
+    // 这样做是为了防止 endTime 之前以经出现了 Stop 事件，
+    // 此时 counter 因该停止 Stop 事件之后的 callback 触发
+    this._state.forEachBetween(startTime, endTime, (record) => {
+      if (latestRecord && latestRecord.state === PlayState.Started 
+                      && record.state !== PlayState.Started) {
+        this.forEachTickBetween(Math.max(latestRecord.time, startTime), record.time - this._context.sampleTime, callback)
+      }
+      latestRecord = record;
+    });
+
     startTime = Math.max(latestRecord.time, startTime);
     // 如果 tick 计数器启动了，那么需要查看每个 tick 上是否有事件要触发
+    // 但是这个条件语句无法知道 endTime 之前是否有停止计数，所有上面的
+    // forEachBetween 是必不可少的
     if (latestRecord.state === PlayState.Started) {
       const startTicks = this._bpmCurve.getTicksAtTime(startTime);
       const ticksAtBegin = this._bpmCurve.getTicksAtTime(latestRecord.time);
