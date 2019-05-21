@@ -31,5 +31,4 @@ window.onload = () => {
     testBpmCurve(EasuAL);
     testTickCounter(EasuAL);
   }, 200);
-
 }

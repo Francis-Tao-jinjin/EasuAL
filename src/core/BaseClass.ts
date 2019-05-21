@@ -12,6 +12,7 @@ import { Oscillator } from '../audioComponent/oscillator';
 import { EasuBuffer } from './AudioBuffer';
 import { EasuBufferSource } from '../audioComponent/BufferSource';
 import { BufferPlayer } from '../audioComponent/BufferPlayer';
+import { Time } from './time/Time';
 
 export class EasuAL {
     public static AudioParamTimeline:typeof AudioParamTimeline;
@@ -26,6 +27,8 @@ export class EasuAL {
     public static EasuBufferSource:typeof EasuBufferSource;
     public static EasuALContext:typeof EasuALContext;
     public static BufferPlayer:typeof BufferPlayer;
+
+    public static Time:typeof Time;
 
     public static destination:EasuDestination;
     public static context:EasuALContext;

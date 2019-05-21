@@ -2,9 +2,14 @@ import { EasuALContext } from '../Context';
 import { TickCounter } from './TickCounter';
 import { StateRecords } from '../../utils/StateRecords';
 import { PlayState } from '../type';
+import { OrdinayEvent } from './OrdinayEvent';
+import { EventArrangement } from './EventArrangement';
+import { isNumber } from '../../utils/typeCheck';
+import { isArray } from 'util';
 
 export class Scheduler {
   
+  private _timeSignature:number = 4;
   private _tickCounter:TickCounter;
   private _lastUpdate:number = 0;
   private _context:EasuALContext;
@@ -12,12 +17,22 @@ export class Scheduler {
   private _state:StateRecords;
   private _ticker?:Ticker;
 
-  constructor(context:EasuALContext, processTick:Function, tickCounter:TickCounter) {
+  private _secheduleEvents:{[id:string]: {event:OrdinayEvent, storage:any}} = {}
+
+  private _arrangements:EventArrangement;
+
+  constructor(context:EasuALContext, tickCounter:TickCounter) {
     this._context = context;
-    this._processTick = processTick;
     this._tickCounter = tickCounter;
     this._state = new StateRecords(PlayState.Stopped);
     this._state.setStateAtTime(PlayState.Stopped, 0);
+    this._processTick = (time,ticks) => {
+      console.log('time:', time, 'ticks:', ticks);
+      this._arrangements.forEachAtTick(ticks, (event) => {
+        event.invoke(time);
+      })
+    };
+    this._arrangements = new EventArrangement();
   }
 
   // this method should be called continuous
@@ -63,7 +78,55 @@ export class Scheduler {
     if (this._ticker) {
       return;
     }
-    this._ticker = new Ticker(this.check, 0.05);
+    this._ticker = new Ticker(this.check.bind(this), 0.05);
+  }
+
+  public schedule(callback:(time:any) => void, time) {
+    const event = new OrdinayEvent({
+      scheduler: this,
+      time,
+      callback,
+    });
+    this._addEvent(event, this._arrangements);
+    return event.id;
+  }
+
+  public scheduleOnce(callback:(time:any) => void, time) {
+    const event = new OrdinayEvent({
+      scheduler: this,
+      time,
+      once: true,
+      callback,
+    });
+    this._addEvent(event, this._arrangements);
+    return event.id;
+  }
+
+  public _addEvent(event:OrdinayEvent, storage:EventArrangement) {
+    this._secheduleEvents[event.id] = {
+      event: event,
+      storage: storage,
+    };
+    storage.add(event);
+  }
+
+  public remove(id:number) {
+    if (this._secheduleEvents.hasOwnProperty(id)) {
+      const item = this._secheduleEvents[id];
+      item.storage.remove(item);
+    }
+  }
+
+  get timeSignature() {
+    return this._timeSignature;
+  }
+
+  set timeSignature(signatures:any) {
+    if (isArray(signatures) && isNumber(signatures[0]) && isNumber(signatures[1])) {
+      this._timeSignature = (signatures[0] / signatures[1]) * 4;
+    } else if (isNumber(signatures)) {
+      this._timeSignature = signatures;
+    }
   }
 }
 
@@ -84,7 +147,7 @@ class Ticker {
       self.onmessage = function(msg) {
         timeoutTime = parseInt(msg.data);
       };
-      function() {
+      function tick() {
         setTimeout(tick, timeoutTime);
         self.postMessage('tick');
       }
