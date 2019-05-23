@@ -3,15 +3,12 @@ import { EasuAL } from '../BaseClass';
 
 export class Time extends EasuAL {
   public readonly TimeObject = true;
-
   public defaultUnit = 's';
-
   public unit:string;
   private _val;
 
   constructor(val?, unit?) {
     super();
-
     this._val = val;
     this.unit = unit;
 
@@ -23,7 +20,7 @@ export class Time extends EasuAL {
     } else if (val && val.constructor === this.constructor) {
       this._val = val.val;
       this.unit = val.unit;
-    } else if (val.TimeObject === true){
+    } else if (val && val.TimeObject === true){
       this._val = val.toSeconds();
     }
     return this;
@@ -87,6 +84,10 @@ export class Time extends EasuAL {
       return 4;
     }
   }
+
+  public now() {
+    return this.context.now();
+  }
   /**
    * 
    * @param beats number of beat
@@ -113,6 +114,11 @@ export class Time extends EasuAL {
     return this.valueOf();
   }
 
+  public toTicks() {
+    const quarterNotes = this.valueOf() / this.beatsToUnit(1);
+    return Math.round(quarterNotes * this.getTPQ());
+  }
+
   private _timeRegEx = {
     n: {  // 音符
       // 匹配： 2n, 0.5n, 1.5n. 最后一个点是 附点，https://zh.wikipedia.org/wiki/%E9%99%84%E9%BB%9E%E9%9F%B3%E7%AC%A6
@@ -134,7 +140,7 @@ export class Time extends EasuAL {
       // 匹配：+1s, +2.5s, +4n, +2n 
       regex: /^\+(.+)$/,
       method: (rest) => {
-        return this.context.now() + (new Time(rest)).valueOf();
+        return this.now() + (new Time(rest)).valueOf();
       }
     },
     bar: {

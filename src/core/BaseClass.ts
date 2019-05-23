@@ -13,6 +13,9 @@ import { EasuBuffer } from './AudioBuffer';
 import { EasuBufferSource } from '../audioComponent/BufferSource';
 import { BufferPlayer } from '../audioComponent/BufferPlayer';
 import { Time } from './time/Time';
+import { Ticks } from './time/Ticks';
+import { isNumber, isString, isUndef } from '../utils/typeCheck';
+import { SchedulerTime } from './time/SchedulerTime';
 
 export class EasuAL {
     public static AudioParamTimeline:typeof AudioParamTimeline;
@@ -29,6 +32,8 @@ export class EasuAL {
     public static BufferPlayer:typeof BufferPlayer;
 
     public static Time:typeof Time;
+    public static Ticks:typeof Ticks;
+    public static SchedulerTime:typeof SchedulerTime;
 
     public static destination:EasuDestination;
     public static context:EasuALContext;
@@ -58,5 +63,19 @@ export class EasuAL {
 
     public dbToGain(db) {
         return Math.pow(10, (db / 20));
+    }
+
+    public toSeconds(value?) : number{
+        if (isUndef(value)) {
+            return this.context.now();
+        } else if (isNumber(value)) {
+            return value;
+        } else if (isString(value)) {
+            return (new EasuAL.Time(value)).toSeconds();
+        } else if (value && value.TimeObject) {
+            return value.toSeconds();
+        } else {
+            throw new Error('can not convert the value to seconds');
+        }
     }
 }

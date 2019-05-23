@@ -20,10 +20,6 @@ export function bufferSourceTest(easual:typeof EasuAL) {
         console.log( easual.context.now() - startTime);
       }
     }).toDestination();
-    if (buffer.length > 0) {
-      startTime = easual.context.now();
-      song.start(undefined, 2, 3, undefined);
-    }
   }
   
   function linearFadeInOut() {

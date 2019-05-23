@@ -37,8 +37,9 @@ export class TickCounter {
       lastStopRecord = {state:PlayState.Stopped, time: 0};
     }
     let firstStartRecord = this._state.getFirstOneOfStateAfterTime(PlayState.Started, lastStopRecord.time);
-    if (firstStartRecord === null) {
-      firstStartRecord = {state:PlayState.Started, time: 0};
+    if (firstStartRecord === null || firstStartRecord.time > time) {
+      return 0;
+      // firstStartRecord = {state:PlayState.Started, time: 0};
     }
     // 因为统计 tick 需要有一个非 Started 状态的值作为结尾
     let tempPause = { time, state: PlayState.Paused };
@@ -74,6 +75,42 @@ export class TickCounter {
       seconds: this._bpmCurve.durationOfTicks(ticks, time),
     });
     return this;
+  }
+
+  public getElapsedSecondsAtTime(time?:number) {
+    time = time === undefined ? this._context.now() : Math.max(time, 0);
+    let lastStopRecord = this._state.getLastOneOfStateBeforeTime(PlayState.Stopped, time);
+    if (lastStopRecord === null) {
+      lastStopRecord = {state:PlayState.Stopped, time: 0};
+    }
+    let firstStartRecord = this._state.getFirstOneOfStateAfterTime(PlayState.Started, lastStopRecord.time);
+    if (firstStartRecord === null || firstStartRecord.time > time) {
+      return 0;
+      // firstStartRecord = {state:PlayState.Started, time: 0};
+    }
+    // 因为统计 tick 需要有一个非 Started 状态的值作为结尾
+    let tempPause = { time, state: PlayState.Paused };
+    this._state.add(tempPause);
+
+    let elapsedSeconds = 0;
+    let previous = firstStartRecord;
+    let segmentStart = firstStartRecord.time;
+    this._state.forEachBetween(firstStartRecord.time, time + this._context.sampleTime, (bpmRecord:{state:PlayState, time:number}) => {
+      const offsetState = this._tickOffset.getMostRecent(bpmRecord.time);
+      if (offsetState !== null && offsetState.time >= previous.time) {
+        elapsedSeconds = offsetState.seconds;
+      }
+      if (bpmRecord.state === PlayState.Started) {
+        segmentStart = bpmRecord.time;
+      }
+      if (previous.time !== bpmRecord.time &&
+        previous.state === PlayState.Started && bpmRecord.state !== PlayState.Started) {
+        elapsedSeconds += bpmRecord.time - segmentStart;
+      }
+      previous = bpmRecord;
+    });
+    this._state.remove(tempPause);
+    return elapsedSeconds;
   }
 
   // startTime 和 endTime 正常的时间

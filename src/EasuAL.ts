@@ -6,6 +6,8 @@ export * from './core/AudioBuffer';
 export * from './audioComponent/BufferSource';
 export * from './audioComponent/BufferPlayer';
 export * from './core/time/Time';
+export * from './core/time/Ticks';
+export * from './core/time/SchedulerTime';
 export * from './core/Context';
 export * from './core/BaseClass';
 

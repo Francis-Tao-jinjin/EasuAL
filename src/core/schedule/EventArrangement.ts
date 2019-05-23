@@ -47,12 +47,9 @@ export class EventArrangement {
   public forEachAtTick(tick, callback) {
     let idx = this.searchAloneTime(tick);
     const end = idx;
-    if (idx >= 0) {
-      if (this._events[idx].time === tick) {
-        let i = idx;
-        for (; this._events[i].time && i > 0; i--) {}
-        idx = i;
-      }
+    if (idx >= 0 && this._events[idx].time === tick) {
+      let i = idx;
+      for (; this._events[i].time === tick && i > 0; i--) {}
     } else {
       return;
     }

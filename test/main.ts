@@ -5,6 +5,7 @@ import { automationTests } from './automation';
 import { audioBufferTest } from './audioBuffer';
 import { bufferSourceTest } from './bufferSource';
 import { testTickCounter } from './tickCounter';
+import { testScheduler } from './scheduler';
 
 const EasuAL = initEasuAL();
 (window as any).EasuAL = EasuAL;
@@ -17,18 +18,19 @@ function activeContext() {
   source.buffer = emptyBuffer;
   source.connect(EasuAL.context._ctx.destination);
   source.start();
-  document.body.removeEventListener('mousemove', activeContext);
+  document.body.removeEventListener('click', activeContext);
 }
 
 window.onload = () => {
-  document.body.addEventListener('mousemove', activeContext);
+  document.body.addEventListener('click', activeContext);
 
   automationTests(EasuAL);
   oscTests(EasuAL);
   audioBufferTest(EasuAL);
   bufferSourceTest(EasuAL);
-  setTimeout(() => {
-    testBpmCurve(EasuAL);
-    testTickCounter(EasuAL);
-  }, 200);
+  // setTimeout(() => {
+  //   testBpmCurve(EasuAL);
+  //   testTickCounter(EasuAL);
+  // }, 200);
+  testScheduler(EasuAL);
 }

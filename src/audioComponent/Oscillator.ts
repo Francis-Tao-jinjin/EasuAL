@@ -126,8 +126,8 @@ export class Oscillator extends EasuAL.EasuAudioNode {
     this._type = t;
   }
 
-  public start(time?) {
-    time = time === undefined ? this.context.now() : Math.max(time, this.context.now());    
+  public start(_time?) {
+    const time = this.toSeconds(_time);
     this._oscillator = new EasuAL.EasuOscNode();
     this._oscillator.setPeriodicWave(this._wave);
     this._oscillator.connect(this.output);
@@ -136,8 +136,8 @@ export class Oscillator extends EasuAL.EasuAudioNode {
     this._oscillator.start(time);
   }
 
-  public stop(time?) {
-    time = time === undefined ? this.context.now() : Math.max(time, this.context.now());    
+  public stop(_time?) {
+    const time = this.toSeconds(_time);
     if (this._oscillator) {
       this._oscillator.stop(time);
     }

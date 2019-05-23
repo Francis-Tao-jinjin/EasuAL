@@ -1,5 +1,7 @@
 import { EasuBuffer } from './AudioBuffer';
 import { Scheduler } from './schedule/Scheduler';
+import { Time } from './time/Time';
+import { SchedulerTime } from './time/SchedulerTime';
 
 export enum AudioParamUnits {
   gain,
@@ -68,6 +70,6 @@ export enum PlayState {
 export interface OrdinayEventOpt {
   scheduler:Scheduler;
   callback:(time:any) => void;
-  time:number;
+  time:SchedulerTime;
   once?:boolean;
 };

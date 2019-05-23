@@ -38,7 +38,8 @@ export class BufferPlayer extends EasuAL.EasuAudioNode {
     this.output = this.context.createGain();
   }
 
-  public start(time?:number, offset?:number, duration?:number) {
+  public start(_time?:any, offset?:number, duration?:number) {
+    const time = this.toSeconds(_time);
     const source = new EasuAL.EasuBufferSource(this.sourceOpt);
     source.connect(this.output);
     source.onended = this._onSourceEnd.bind(this);
@@ -59,7 +60,8 @@ export class BufferPlayer extends EasuAL.EasuAudioNode {
     return this;
   }
 
-  public stop(time?:number) {
+  public stop(_time?:any) {
+    const time = this.toSeconds(_time);
     for (let i = 0; i < this._sources.length; i++) {
       this._sources[i].stop(time);
     }

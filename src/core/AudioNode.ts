@@ -80,8 +80,8 @@ export class EasuAudioParam extends EasuAudioNode {
         }
     }
 
-    public setValueAtTime(value, time?) {
-        time = time === undefined ? this.context.now() : time;
+    public setValueAtTime(value, _time?) {
+        const time = this.toSeconds(_time);
         this._param.setValueAtTime(value, time);
         this._timeline.setValueAtTime(value, time);
     }
@@ -99,32 +99,33 @@ export class EasuAudioParam extends EasuAudioNode {
         this._param.setValueAtTime(val, this.context.now());
     }
 
-    public cancelScheduledValues(time) {
+    public cancelScheduledValues(_time?) {
+        const time = this.toSeconds(_time);
         this._timeline.cancelAfter(time);
         this._param.cancelScheduledValues(time);
         return this;
     }
 
-    public linearRampTo(value:number, rampTime:number, startTime?:number) {
-        startTime = startTime === undefined ? EasuAL.context.now() : startTime;
+    public linearRampTo(value:number, rampTime:number, _startTime?:any) {
+        const startTime = this.toSeconds(_startTime);
         this._timeline.linearRampTo(value, rampTime, startTime);
         this._param.setValueAtTime(this.getValueAtTime(startTime), startTime);
         this._param.linearRampToValueAtTime(value, startTime + rampTime);
         return this;
     }
 
-    public exponentialRampTo(value:number, rampTime:number, startTime?:number) {
+    public exponentialRampTo(value:number, rampTime:number, _startTime?:any) {
         value = Math.max(1e-5, value);
-        startTime = startTime === undefined ? EasuAL.context.now() : startTime;
+        const startTime = this.toSeconds(_startTime);
         this._timeline.exponentialRampTo(value, rampTime, startTime);
         this._param.setValueAtTime(this.getValueAtTime(startTime), startTime);
         this._param.exponentialRampToValueAtTime(value, startTime + rampTime);
         return this;
     }
 
-    public targetApproachTo(value:number, rampTime:number, startTime:number) {
+    public targetApproachTo(value:number, rampTime:number, _startTime:number) {
         value = Math.max(1e-5, value);
-        startTime = startTime === undefined ? EasuAL.context.now() : startTime;
+        const startTime = this.toSeconds(_startTime);
         this._timeline.targetRampTo(value, rampTime, startTime);
         this._param.setValueAtTime(this.getValueAtTime(startTime), startTime);
         this._param.setTargetAtTime(value, startTime, rampTime/6);
@@ -174,9 +175,9 @@ export class EasuOscNode extends EasuAudioNode {
         this._oscillator.onended = fn;
     }
 
-    public start(time?:number) {
+    public start(_time?:any) {
         if (this._startTime === -1) {
-            time = time === undefined ? this.context.now() : Math.max(time, this.context.now());
+            const time = this.toSeconds(_time);
             this._startTime = time;
             this._oscillator.start(this._startTime);
             // this.amp.gain.setValueAtTime(1, this._startTime);
@@ -186,11 +187,11 @@ export class EasuOscNode extends EasuAudioNode {
         return this;
     }
 
-    public stop(time?:number) {
+    public stop(_time?:any) {
         if (this._startTime === -1) {
             throw new Error('oscillator has not been start yet');
         }
-        this._stopTime = time === undefined ? this.context.now() : Math.max(time, this.context.now());
+        this._stopTime = this.toSeconds(_time);
         // this.amp.gain.cancelScheduledValues(this._stopTime + this.context.sampleTime);
         if (this._stopTime > this._startTime) {
             this.amp.gain.setValueAtTime(0, this._stopTime);

@@ -1,4 +1,5 @@
 import { EasuAL } from './BaseClass';
+import { isNumber } from '../utils/typeCheck';
 
 /**
  * original idea is from apple webkit implementation https://github.com/WebKit/webkit/blob/master/Source/WebCore/Modules/webaudio/AudioParamTimeline.cpp 
@@ -32,6 +33,13 @@ export class AudioParamTimeline {
     }
 
     public insert(event) {
+        if (!isNumber(event.time)) {
+            if (event.time.TimeObject) {
+                event.time = event.time.valueOf();
+            } else {
+                throw Error('AudioParamTimeline insert: "time" invalid');
+            }
+        }
         const idx = this.search(event.time);
         this._rampPoints.splice(idx + 1, 0, event);
         if (this._rampPoints.length > this.capacity) {
@@ -50,7 +58,7 @@ export class AudioParamTimeline {
         return this;
     }
 
-    public setRampPoint(time) {
+    public setRampPoint(time) {   
         const value = this.getValueAtTime(time);
         this.setValueAtTime(value, time);
         return this;

@@ -89,18 +89,20 @@ export class EasuBufferSource extends EasuAL.EasuAudioNode {
     return this._sourceNode.loopEnd;
   }
 
-  public start(time?:number, offset?:number, duration?:number, gain?:number) {
+  public start(_time?:any, offset?:number, duration?:number, gain?:number) {
+    console.log('1 this._startTime', this._startTime);    
     if (this._startTime !== -1) {
-      throw('can only be start once');
+      console.log('2 this._startTime', this._startTime);
+      return new Error('can only be start once');
     }
     if (this._buffer.length === 0) {
-      throw('buffer is either not set or not loaded');
+      return new Error('buffer is either not set or not loaded');
     }
     if (this._sourceStopped) {
-      throw('source is already stopped');
+      return new Error('source is already stopped');
     }
     gain = gain === undefined ? 1 : Math.max(gain, 0);
-    time = time === undefined ? this.context.now() : Math.max(time, this.context.now());
+    const time = this.toSeconds(_time);
 
     if (this.loop) {
       offset = offset === undefined ? this.loopStart : Math.max(offset, 0);
@@ -139,7 +141,7 @@ export class EasuBufferSource extends EasuAL.EasuAudioNode {
     return this;
   }
 
-  public stop(time?:number) {
+  public stop(_time?:any) {
     if (this._buffer.length === 0) {
       console.warn('audioBuffer is empty');
       return;
@@ -154,7 +156,7 @@ export class EasuBufferSource extends EasuAL.EasuAudioNode {
         this._stopTime = -1;
       }
     }
-    time = time === undefined ? this.context.now() : Math.max(time, this.context.now());
+    const time = this.toSeconds(_time);
     this._stopTime = time + this.fadeOutDuration;
     if (this.fadeOutDuration > 0) {
       if (this.fadeCurve === FadeCurve.Exponential) {

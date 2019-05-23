@@ -124,6 +124,12 @@ export class BPMCurve extends EasuAL.AudioParamTimeline {
     return this.timeOfTick(ticksA + ticks) - time;
   }
 
+  public timeToTick(duration:number, time?:number) {
+    time = time === undefined ? this._context.now() : Math.max(time, 0);
+    const startTicks = this.getTicksAtTime(time);
+    return this.getTicksAtTime(time + duration) - startTicks;
+  }
+
   get value() {
     return this._toBPM(this.getValueAtTime(this._context.now()));
   }

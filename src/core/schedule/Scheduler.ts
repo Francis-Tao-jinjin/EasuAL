@@ -6,6 +6,8 @@ import { OrdinayEvent } from './OrdinayEvent';
 import { EventArrangement } from './EventArrangement';
 import { isNumber } from '../../utils/typeCheck';
 import { isArray } from 'util';
+import { EasuAL } from '../BaseClass';
+import { toSeconds } from '../../utils/helper';
 
 export class Scheduler {
   
@@ -27,7 +29,7 @@ export class Scheduler {
     this._state = new StateRecords(PlayState.Stopped);
     this._state.setStateAtTime(PlayState.Stopped, 0);
     this._processTick = (time,ticks) => {
-      console.log('time:', time, 'ticks:', ticks);
+      // console.log('time:', time, 'ticks:', ticks);
       this._arrangements.forEachAtTick(ticks, (event) => {
         event.invoke(time);
       })
@@ -50,9 +52,10 @@ export class Scheduler {
     }
   }
 
-  public start(time?:number, offset?:number) {
+  public start(_time?:any, offset?:number) {
     const now = this._context.now();
-    time = time === undefined ? now : Math.max(now, time);
+    const time = toSeconds(_time);
+    // time = time === undefined ? now : Math.max(now, time);
     offset = offset === undefined ? 0 : Math.max(0, offset);
 
     this._context._ctx.resume();
@@ -64,14 +67,15 @@ export class Scheduler {
     }
   }
 
-  public stop(time?:number) {
-    const now = this._context.now();
-    time = time === undefined ? now : Math.max(now, time);
+  public stop(_time?:any) {
+    const time = toSeconds(_time);
     if (this._state.getRecentStateAtTime(time) === PlayState.Stopped) {
       const recentStop = this._state.getMostRecent(time);
       recentStop && this._state.cancelAfter(recentStop.time);
     }
     this._state.setStateAtTime(PlayState.Stopped, time);
+    this._tickCounter.stop(time);
+    return this;
   }
 
   public createTicker() {
@@ -81,20 +85,20 @@ export class Scheduler {
     this._ticker = new Ticker(this.check.bind(this), 0.05);
   }
 
-  public schedule(callback:(time:any) => void, time) {
+  public schedule(callback:(time:any) => void, time?) {
     const event = new OrdinayEvent({
       scheduler: this,
-      time,
+      time: new EasuAL.SchedulerTime(time),
       callback,
     });
     this._addEvent(event, this._arrangements);
     return event.id;
   }
 
-  public scheduleOnce(callback:(time:any) => void, time) {
+  public scheduleOnce(callback:(time:any) => void, time?) {
     const event = new OrdinayEvent({
       scheduler: this,
-      time,
+      time: new EasuAL.SchedulerTime(time),
       once: true,
       callback,
     });
@@ -127,6 +131,24 @@ export class Scheduler {
     } else if (isNumber(signatures)) {
       this._timeSignature = signatures;
     }
+  }
+
+  get ticks() {
+    return Math.ceil(this._tickCounter.getCountOfTicks(this._context.now()));
+  }
+
+  set ticks(t) {
+    this._tickCounter.setTicksAtTime(t, this._context.now());
+  }
+
+  get seconds() {
+    return this._tickCounter.getElapsedSecondsAtTime(this._context.now());
+  }
+
+  set seconds(s:number) {
+    const now = this._context.now();
+    const ticks = this._context.BPM.timeToTick(s, now);
+    this._tickCounter.setTicksAtTime(ticks, now);
   }
 }
 
