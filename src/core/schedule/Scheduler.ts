@@ -8,6 +8,8 @@ import { isNumber } from '../../utils/typeCheck';
 import { isArray } from 'util';
 import { EasuAL } from '../BaseClass';
 import { toSeconds } from '../../utils/helper';
+import { IntervalArrangement } from './IntervalArrangement';
+import { RepeatEvent } from './RepeatEvent';
 
 export class Scheduler {
   
@@ -22,6 +24,7 @@ export class Scheduler {
   private _secheduleEvents:{[id:string]: {event:OrdinayEvent, storage:any}} = {}
 
   private _arrangements:EventArrangement;
+  private _repeatArrangement:IntervalArrangement;
 
   constructor(context:EasuALContext, tickCounter:TickCounter) {
     this._context = context;
@@ -35,6 +38,7 @@ export class Scheduler {
       })
     };
     this._arrangements = new EventArrangement();
+    this._repeatArrangement = new IntervalArrangement();
   }
 
   // this method should be called continuous
@@ -53,15 +57,16 @@ export class Scheduler {
   }
 
   public start(_time?:any, offset?:number) {
-    const now = this._context.now();
     const time = toSeconds(_time);
-    // time = time === undefined ? now : Math.max(now, time);
     offset = offset === undefined ? 0 : Math.max(0, offset);
 
     this._context._ctx.resume();
     if (this._state.getRecentStateAtTime(time) !== PlayState.Started){
       this._state.setStateAtTime(PlayState.Started, time);
       this._tickCounter.start(time, offset);
+      this._repeatArrangement.forEach((event:RepeatEvent) => {
+        event.activate(time);
+      });
     } else {
       console.warn('Scheduler already started');
     }
@@ -106,7 +111,23 @@ export class Scheduler {
     return event.id;
   }
 
-  public _addEvent(event:OrdinayEvent, storage:EventArrangement) {
+  public scheduleRepeat(callback:(time:any) => void, startTime?, interval?, duration?) {
+    const s_time = new EasuAL.SchedulerTime(startTime);
+    const event = new RepeatEvent({
+      scheduler: this,
+      time: s_time,
+      interval: new EasuAL.Time(interval),
+      duration: new EasuAL.Time((duration === undefined ? Infinity : duration)),
+      callback,
+    });
+    // console.log('startTime:', startTime, s_time.toSeconds());
+    this._addEvent(event, this._repeatArrangement);
+    return event.id;
+  }
+
+  public _addEvent(event:RepeatEvent, storage:IntervalArrangement);
+  public _addEvent(event:OrdinayEvent, storage:EventArrangement);
+  public _addEvent(event, storage) {
     this._secheduleEvents[event.id] = {
       event: event,
       storage: storage,
@@ -117,8 +138,11 @@ export class Scheduler {
   public remove(id:number) {
     if (this._secheduleEvents.hasOwnProperty(id)) {
       const item = this._secheduleEvents[id];
-      item.storage.remove(item);
+      item.storage.remove(item.event);
+      item.event.destory();
+      delete this._secheduleEvents[id.toString()];
     }
+    return this;
   }
 
   get timeSignature() {
@@ -131,6 +155,12 @@ export class Scheduler {
     } else if (isNumber(signatures)) {
       this._timeSignature = signatures;
     }
+  }
+
+  public getCountOfTicks(_time?) {
+    const time = toSeconds(_time);
+    // console.log('getCountOfTicks time:', time);
+    return Math.round(this._tickCounter.getCountOfTicks(time));
   }
 
   get ticks() {

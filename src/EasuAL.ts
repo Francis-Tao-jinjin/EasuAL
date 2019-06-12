@@ -10,4 +10,5 @@ export * from './core/time/Ticks';
 export * from './core/time/SchedulerTime';
 export * from './core/Context';
 export * from './core/BaseClass';
-
+export * from './dspRelative/Envelope';
+export * from './dspRelative/AmOscillator';

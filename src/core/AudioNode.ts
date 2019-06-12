@@ -1,30 +1,45 @@
 import { EasuAL } from './BaseClass';
-import { AudioParamTimeline } from './AutomationTimeline';
+import { AudioParamTimeline, ParamEvent } from './AutomationTimeline';
 import {
     AudioParamUnits,
     EasuAudioParamOpt,
     EasuOscNodeOpt
 } from './type';
 
-export abstract class EasuAudioNode extends EasuAL{
-    public input?:AudioNode|AudioParam;
-    public output?:AudioNode;
+export abstract class EasuAudioNode extends EasuAL {
+    public input?:AudioNode|AudioParam|EasuAudioNode;
+    public output?:AudioNode|EasuAudioNode;
 
     constructor () {
         super();
     }
 
     public connect(dst:EasuAudioNode|AudioNode|AudioParam) {
-        if (dst instanceof EasuAudioNode) {
-            this.output && this.output.connect((dst.input as AudioNode));
-        } else {
-            this.output && this.output.connect((dst as AudioNode));
+        let output = this.output;
+        while (output instanceof EasuAudioNode && output.output) {
+            output = output.output;
         }
+        let input = dst;
+        while (input instanceof EasuAudioNode && input.input) {
+            input = input.input;
+        }
+        (output as AudioNode).connect(input as AudioNode);
+    }
+
+    public disconnect(dst:EasuAudioNode|AudioNode|AudioParam) {
     }
 
     public toDestination() {
-        if (this.output && this.context.destination) {
-            this.output.connect(this.context.destination);
+        if (this.context.destination) {
+            let _output = this.output;
+            while (_output && ((_output as any).output !== undefined)) {
+                _output = (_output as EasuAudioNode).output;
+            }
+            if (_output) {
+                (_output as AudioNode).connect(this.context.destination);
+            } else {
+                console.error('invalid output to destination');
+            }
         }
         return this;
     };
@@ -106,8 +121,39 @@ export class EasuAudioParam extends EasuAudioNode {
         return this;
     }
 
+    public cancelAndHoldAtTime(_time?) {
+        const time = this.toSeconds(_time);
+        const valueAtTime = this.getValueAtTime(time);
+        this._param.cancelScheduledValues(time);
+        const recent = this._timeline.getMostRecent(time);
+        const next = this._timeline.getRightNext(time);
+        if (recent && recent.time === time) {
+            if (next) {
+                this._timeline.cancelAfter(next.time);
+            } else {
+                this._timeline.cancelAfter(time + this.context.sampleTime);
+            }
+        } else if (next) {
+            this._timeline.cancelAfter(next.time);
+            if (next.type === ParamEvent.LinearRampToValue) {
+                this.linearRampTo(valueAtTime, time - recent.time, recent.time);
+            } else if (next.type === ParamEvent.ExponentialRampToValue) {
+                this.exponentialRampTo(valueAtTime, time - recent.time, recent.time);
+            }
+        }
+
+        this._timeline.insert({
+            type: ParamEvent.SetValue,
+            value: valueAtTime,
+            time: time,
+        });
+        this._param.setValueAtTime(valueAtTime, time);
+        return this;
+    }
+
     public linearRampTo(value:number, rampTime:number, _startTime?:any) {
         const startTime = this.toSeconds(_startTime);
+        this.cancelAndHoldAtTime(startTime);
         this._timeline.linearRampTo(value, rampTime, startTime);
         this._param.setValueAtTime(this.getValueAtTime(startTime), startTime);
         this._param.linearRampToValueAtTime(value, startTime + rampTime);
@@ -117,6 +163,8 @@ export class EasuAudioParam extends EasuAudioNode {
     public exponentialRampTo(value:number, rampTime:number, _startTime?:any) {
         value = Math.max(1e-5, value);
         const startTime = this.toSeconds(_startTime);
+        // this.cancelScheduledValues(startTime);
+        this.cancelAndHoldAtTime(startTime);
         this._timeline.exponentialRampTo(value, rampTime, startTime);
         this._param.setValueAtTime(this.getValueAtTime(startTime), startTime);
         this._param.exponentialRampToValueAtTime(value, startTime + rampTime);
@@ -126,10 +174,25 @@ export class EasuAudioParam extends EasuAudioNode {
     public targetApproachTo(value:number, rampTime:number, _startTime:number) {
         value = Math.max(1e-5, value);
         const startTime = this.toSeconds(_startTime);
+        // this.cancelScheduledValues(startTime);
+        this.cancelAndHoldAtTime(startTime);
         this._timeline.targetRampTo(value, rampTime, startTime);
         this._param.setValueAtTime(this.getValueAtTime(startTime), startTime);
         this._param.setTargetAtTime(value, startTime, rampTime/6);
         this._param.setValueAtTime(value, startTime + rampTime);
+    }
+
+    public setValueCurveAtTime(valuse:number[], startTime:number, duration:number, scaling:number = 1) {
+        duration = this.toSeconds(duration);
+        startTime = this.toSeconds(startTime);
+        this.setValueAtTime(valuse[0] * scaling, startTime);
+        const segmentTime = duration / (valuse.length - 1);
+        let segmentStartTime = startTime + segmentTime;
+        for (let i = 1; i < valuse.length; i++) {
+            this.linearRampTo(valuse[i] * scaling, segmentTime, segmentStartTime);
+            segmentStartTime += segmentTime;
+        }
+        return this;
     }
 }
 

@@ -1,7 +1,6 @@
 import { Scheduler } from './Scheduler';
 import { OrdinayEventOpt } from '../type';
 import { EasuAL } from '../BaseClass';
-import { Ticks } from '../time/Ticks';
 
 export class OrdinayEvent {
   static eventId = 0;
@@ -9,7 +8,7 @@ export class OrdinayEvent {
   public time:number;
   public callback: (time:any) => void;
   public once:boolean;
-  private _scheduler:Scheduler;
+  protected _scheduler:Scheduler;
 
   constructor(opt:OrdinayEventOpt) {
     this.id = OrdinayEvent.eventId++;
@@ -17,7 +16,6 @@ export class OrdinayEvent {
     this.once = opt.once === undefined ? false : opt.once;
     this.time = new EasuAL.Ticks(opt.time).valueOf();
     this.callback = opt.callback;
-    console.log('event.time', this.time);
   }
 
   public invoke(time) {
@@ -25,6 +23,7 @@ export class OrdinayEvent {
       this.callback(time);
       if (this.once) {
         this._scheduler.remove(this.id);
+        console.log('remove', this.id);
       }
     }
   }

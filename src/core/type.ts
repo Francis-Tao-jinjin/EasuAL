@@ -73,3 +73,8 @@ export interface OrdinayEventOpt {
   time:SchedulerTime;
   once?:boolean;
 };
+
+export interface RepeatEventOpt extends OrdinayEventOpt {
+  interval?:number|Time;
+  duration?:number|Time;
+}

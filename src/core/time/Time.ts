@@ -28,7 +28,7 @@ export class Time extends EasuAL {
 
   public valueOf() {
     if (isUndef(this._val)) {
-      return this.context.now();
+      return this.now();
     } else if (isString(this._val) && isUndef(this.unit)) {
       for (let key in this._timeRegEx) {
         if (this._timeRegEx[key].regex.test(this._val.trim())) {

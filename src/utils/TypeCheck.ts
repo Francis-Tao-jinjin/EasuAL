@@ -17,3 +17,7 @@ export function isNumber(arg) {
 export function isString(arg) {
   return (typeof arg === 'string');
 }
+
+export function isArray(arg) {
+  return (Array.isArray(arg));
+}

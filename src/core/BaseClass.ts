@@ -16,6 +16,8 @@ import { Time } from './time/Time';
 import { Ticks } from './time/Ticks';
 import { isNumber, isString, isUndef } from '../utils/typeCheck';
 import { SchedulerTime } from './time/SchedulerTime';
+import { Envelope } from '../dspRelative/Envelope';
+import { AMOscillator } from '../dspRelative/AmOscillator';
 
 export class EasuAL {
     public static AudioParamTimeline:typeof AudioParamTimeline;
@@ -30,6 +32,9 @@ export class EasuAL {
     public static EasuBufferSource:typeof EasuBufferSource;
     public static EasuALContext:typeof EasuALContext;
     public static BufferPlayer:typeof BufferPlayer;
+
+    public static AMOscillator:typeof AMOscillator;
+    public static Envelope:typeof Envelope;
 
     public static Time:typeof Time;
     public static Ticks:typeof Ticks;

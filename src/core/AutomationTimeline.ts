@@ -14,10 +14,10 @@ const MINI = 1e-5;
 export enum ParamEvent {
     SetValue,
     LinearRampToValue,
-    exponentialRampToValue,
+    ExponentialRampToValue,
     SetTarget,
     SetValueCurve,
-    cancelScheduledValues,
+    CancelScheduledValues,
 }
 
 export class AudioParamTimeline {
@@ -110,7 +110,7 @@ export class AudioParamTimeline {
     private _exponentialRampToValueAtTime(value, endTime) {
         // start time is now        
         const event = {
-            type: ParamEvent.exponentialRampToValue,
+            type: ParamEvent.ExponentialRampToValue,
             time: endTime,
             value: value,
         };
@@ -154,7 +154,7 @@ export class AudioParamTimeline {
             // 但是存在一个问题就是开始的时间其实没有严格的记录，这是因为 LinearRampToValue 本身没有考虑这个问题
             // 所以为了避免直接使用 LinearRampToValue 而将其变成私有方法
             value = linearRampToInterpolate(recent.value, next.value, recent.time, next.time, time);
-        } else if (next.type === ParamEvent.exponentialRampToValue) {
+        } else if (next.type === ParamEvent.ExponentialRampToValue) {
             // next 为 LinearRampToValue 时，结束时间为 next.time
             // 问题同上
             value = exponentialRampToInterpolate(recent.value, next.value, recent.time, next.time, time);
@@ -225,12 +225,13 @@ export class AudioParamTimeline {
         let idx = this.search(time);
         if (idx >= 0) {
             if (this._rampPoints[idx].time === time) {
-                let i = idx;
-                for (;this._rampPoints[i].time && i > 0; i--) {}
-                idx = i;
-            }
-            if (idx >= 0) {
+                let i = idx - 1;
+                for (;i > 0 && this._rampPoints[i].time === time; i--) {
+                    idx = i;
+                }
                 this._rampPoints = this._rampPoints.slice(0, idx);
+            } else {
+                this._rampPoints = this._rampPoints.slice(0, idx + 1);
             } 
         }
         else {

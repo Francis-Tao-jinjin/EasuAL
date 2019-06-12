@@ -8,8 +8,10 @@ export class SchedulerTime extends Time {
 
   public now() {
     if (this.context._scheduler) {
+      console.log('use _scheduler now');
       return this.context._scheduler.seconds;
     } else {
+      console.log('use context now');
       return this.context.now();
     }
   }

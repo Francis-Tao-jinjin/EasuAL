@@ -6,6 +6,7 @@ import { audioBufferTest } from './audioBuffer';
 import { bufferSourceTest } from './bufferSource';
 import { testTickCounter } from './tickCounter';
 import { testScheduler } from './scheduler';
+import { envelopeTests } from './envelope';
 
 const EasuAL = initEasuAL();
 (window as any).EasuAL = EasuAL;
@@ -33,4 +34,5 @@ window.onload = () => {
   //   testTickCounter(EasuAL);
   // }, 200);
   testScheduler(EasuAL);
+  envelopeTests(EasuAL);
 }
