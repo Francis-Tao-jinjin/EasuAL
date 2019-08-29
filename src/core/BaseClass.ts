@@ -18,6 +18,7 @@ import { isNumber, isString, isUndef } from '../utils/typeCheck';
 import { SchedulerTime } from './time/SchedulerTime';
 import { Envelope } from '../dspRelative/Envelope';
 import { AMOscillator } from '../dspRelative/AmOscillator';
+import { FMOscillator } from '../dspRelative/FmOscillator';
 
 export class EasuAL {
     public static AudioParamTimeline:typeof AudioParamTimeline;
@@ -34,6 +35,7 @@ export class EasuAL {
     public static BufferPlayer:typeof BufferPlayer;
 
     public static AMOscillator:typeof AMOscillator;
+    public static FMOscillator:typeof FMOscillator;
     public static Envelope:typeof Envelope;
 
     public static Time:typeof Time;

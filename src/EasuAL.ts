@@ -12,3 +12,4 @@ export * from './core/Context';
 export * from './core/BaseClass';
 export * from './dspRelative/Envelope';
 export * from './dspRelative/AmOscillator';
+export * from './dspRelative/FmOscillator';
